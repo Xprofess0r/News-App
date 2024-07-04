@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>News App</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">NewsApp</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="#" id="homeLink">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" id="sportsLink">Sports</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" id="weatherLink">Weather</a>
+          </li>
+        </ul>
+        <form class="d-flex" role="search" id="searchForm">
+          <input id="searchInput" class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+          <button id="search" class="btn btn-outline-success" type="submit">Search</button>
+        </form>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h1>Welcome to News App (<span id="resultsCount"></span> Results)</h1>
+    <div class="row content" id="newsContainer"></div>
+  </div>
+  <div class="d-flex justify-content-around my-4">
+    <button class="btn btn-primary" id="prev"> &lt; Previous Page</button>
+    <button class="btn btn-primary" id="next">Next Page &gt;</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  <script>
+    let currentQuery = "news";
+    let currentPage = 1;
+    const apiKey = '1FVkGxGwfQg93ubDIBvvPe8okTBQDdyTXcj4sEG_Kd9cg2we';  // Replace with your Currents API key
+
+    const fetchNews = async (page, q) => {
+      console.log(`Fetching News for ${q}, page number ${page}...`);
+      const url = new URL('https://api.currentsapi.services/v1/search');
+      url.searchParams.append('keywords', q);
+      url.searchParams.append('language', 'en');
+      url.searchParams.append('page_number', page);
+      url.searchParams.append('apiKey', apiKey);
+
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        displayNews(data.news);
+        document.getElementById('resultsCount').innerText = data.news.length;
+      } catch (error) {
+        console.error('Fetching news failed:', error);
+      }
+    };
+
+    const displayNews = (articles) => {
+      const newsContainer = document.getElementById('newsContainer');
+      newsContainer.innerHTML = '';
+      articles.forEach(article => {
+        const articleElement = document.createElement('div');
+        articleElement.className = 'col-12 col-md-6 col-lg-4 mb-3';
+        articleElement.innerHTML = `
+          <div class="card">
+            <img src="${article.image}" class="card-img-top" alt="${article.title}">
+            <div class="card-body">
+              <h5 class="card-title">${article.title}</h5>
+              <p class="card-text">${article.description}</p>
+              <a href="${article.url}" class="btn btn-primary" target="_blank">Read More</a>
+            </div>
+          </div>
+        `;
+        newsContainer.appendChild(articleElement);
+      });
+    };
+
+    document.getElementById('searchForm').addEventListener('submit', event => {
+      event.preventDefault();
+      currentQuery = document.getElementById('searchInput').value;
+      currentPage = 1;
+      fetchNews(currentPage, currentQuery);
+    });
+
+    document.getElementById('prev').addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        fetchNews(currentPage, currentQuery);
+      }
+    });
+
+    document.getElementById('next').addEventListener('click', () => {
+      currentPage++;
+      fetchNews(currentPage, currentQuery);
+    });
+
+    document.getElementById('homeLink').addEventListener('click', () => {
+      currentQuery = 'news';
+      currentPage = 1;
+      fetchNews(currentPage, currentQuery);
+    });
+
+    document.getElementById('sportsLink').addEventListener('click', () => {
+      currentQuery = 'sports';
+      currentPage = 1;
+      fetchNews(currentPage, currentQuery);
+    });
+
+    document.getElementById('weatherLink').addEventListener('click', () => {
+      currentQuery = 'weather';
+      currentPage = 1;
+      fetchNews(currentPage, currentQuery);
+    });
+
+    fetchNews(currentPage, currentQuery);
+  </script>
+</body>
+</html>
